@@ -41,6 +41,7 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       width: 400px;
       max-width: 90%;
+      display: none;
     }
 
     h1 {
@@ -96,18 +97,40 @@
       background-color: #fbeaea;
       color: #dc3545;
     }
+
+    .loading {
+      background-color: #fff3cd;
+      color: #856404;
+    }
   </style>
 </head>
-<body>
-  <div class="container">
+<body onload="showPage()">
+  <div class="loader" id="loader">
+    <div></div>
+  </div>
+
+  <div class="container" id="content">
+    <img src="https://www.revisiontecnicavehicular.cl/wp-content/uploads/2022/02/PERMISO-DE-CIRCULACION-63.png" alt="Permiso de Circulación" style="width: 100%; max-width: 400px; border-radius: 10px; margin-bottom: 15px;">
     <h1>Municipalidad de Cerro Navia</h1>
     <p>Ingrese el código de validación:</p>
-    <input type="text" id="codeInput" placeholder="Ej: 01847218001">
+    <input type="text" id="codeInput" placeholder="Ej: ABC123">
     <button onclick="checkCode()">Verificar Código</button>
     <div id="result"></div>
+
+    <div class="contact-buttons">
+      <a href="mailto:cerronaviacontacto@gmail.com" class="email"><i class="fas fa-envelope"></i> Email</a>
+      <a href="https://wa.me/56955397006" class="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+    </div>
   </div>
 
   <script>
+    function showPage() {
+      setTimeout(() => {
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("content").style.display = "block";
+      }, 3000);
+    }
+
     // Lista de códigos válidos (se pueden agregar más en el futuro)
     const validCodes = ["01847218001"];
 
@@ -115,7 +138,10 @@
       const inputCode = document.getElementById("codeInput").value.trim();
       const resultDiv = document.getElementById("result");
 
-      if (validCodes.includes(inputCode)) {
+      if (inputCode === "") {
+        resultDiv.textContent = "⚠️ Por favor, ingrese un código.";
+        resultDiv.className = "loading";
+      } else if (validCodes.includes(inputCode)) {
         resultDiv.textContent = "✅ Código válido. Permiso de circulación confirmado.";
         resultDiv.className = "valid";
       } else {
