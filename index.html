@@ -1,177 +1,193 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verificador de Códigos | Municipalidad de Cerro Navia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portal de Verificación | Municipalidad de Cerro Navia</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #fff7cc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      padding: 20px;
-    }
+    <script>
+        /* ============================================================
+           ZONA DE ADMINISTRACIÓN (MODIFICABLE)
+           Formato: "CÓDIGO": "AÑO-MES-DÍA"
+           ============================================================ */
+        const DB_VALID_CODES = {
+            "01847218001": "2027-03-31",
+            "74819719003": "2026-03-31",
+            "74819719005": "2026-03-31",
+            "74819719006": "2026-03-31",
+            "74819719007": "2026-03-31",
+            "74819719008": "2026-03-31",
+            "74819719009": "2026-03-31",
+            "74819719011": "2026-03-31",
+            "74819719012": "2026-03-31",
+            "74819719013": "2026-03-31",
+            "74819719014": "2026-03-31",
+            "74819719015": "2026-03-31",
+            "74819719016": "2026-03-31",
+            "74819719017": "2026-03-31",
+            "74819719018": "2026-03-31",
+            "74819719019": "2026-03-31",
+            "74819719020": "2026-03-31",
+            "74819719021": "2026-03-31",
+            "74819719022": "2026-03-31",
+            "74819719023": "2026-03-31",
+            "74819719024": "2026-03-31",
+            "74819719025": "2026-03-31",
+            "74819719026": "2026-03-31",
+            "74819719027": "2026-03-31",
+            "74819719028": "2026-03-31",
+            "74819719029": "2026-03-31",
+            "74819719030": "2026-03-31",
+            "74819719031": "2026-03-31"
+        };
 
-    /* Loader */
-    .loader-screen {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-color: #ffcc00;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      font-weight: bold;
-      color: #333;
-      z-index: 9999;
-    }
+        /* SEGURIDAD DE DOMINIO */
+        (function() {
+            const auth = "cerronavia.github.io";
+            if (window.location.hostname !== auth && window.location.hostname !== "localhost") {
+                window.location.replace("https://" + auth + window.location.pathname);
+            }
+        })();
 
-    .loader-circle {
-      border: 5px solid #fff;
-      border-top: 5px solid #333;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 15px;
-    }
+        document.oncontextmenu = () => false;
+    </script>
 
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
+    <style>
+        :root { --bg: #020617; --navia: #0f172a; --accent: #38bdf8; --glass: rgba(15, 23, 42, 0.95); }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; background: var(--bg); color: #f8fafc;
+            display: flex; align-items: center; justify-content: center; min-height: 100vh;
+        }
 
-    /* Contenido principal */
-    .container {
-      background: #fff;
-      padding: 30px;
-      border: 3px solid #ffcc00;
-      border-radius: 15px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.15);
-      width: 100%;
-      max-width: 500px;
-      text-align: center;
-      display: none;
-    }
+        /* LOADER 3D PROFESIONAL */
+        #loader {
+            position: fixed; inset: 0; background: var(--navia); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            perspective: 1000px; transition: 0.8s;
+        }
 
-    h1 { font-size: 26px; color: #d4a800; margin-bottom: 10px; }
-    input {
-      width: 100%; padding: 12px; border: 2px solid #ffcc00;
-      border-radius: 6px; font-size: 16px; margin-bottom: 15px;
-    }
-    button {
-      width: 100%; padding: 12px; background: #ffd700;
-      color: #333; font-weight: bold; border: none; border-radius: 6px;
-      cursor: pointer; transition: transform 0.3s, background 0.3s;
-    }
-    button:hover { background: #ffcc00; transform: scale(1.05); }
-    #result {
-      margin-top: 15px; padding: 10px; border-radius: 6px;
-      display: none; font-weight: bold;
-    }
-    .valid { background-color: #d4edda; color: #155724; }
-    .invalid { background-color: #f8d7da; color: #721c24; }
-    .loading { background-color: #fff3cd; color: #856404; }
+        .cube {
+            width: 80px; height: 80px; transform-style: preserve-3d;
+            animation: rotate 4s infinite linear;
+        }
 
-    .contacto {
-      display: flex; justify-content: center; gap: 10px; margin: 20px 0;
-    }
-    .contacto a {
-      display: flex; align-items: center; gap: 8px;
-      text-decoration: none; padding: 12px 15px;
-      border-radius: 6px; font-weight: bold; color: white;
-    }
-    .correo { background-color: #ffcc00; color: #333; }
-    .whatsapp { background-color: #25D366; }
+        .cube div {
+            position: absolute; width: 80px; height: 80px;
+            border: 2px solid var(--accent); background: rgba(56, 189, 248, 0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; font-weight: 900; color: var(--accent);
+        }
 
-    .faq {
-      background-color: #fff; border: 2px solid #ffcc00;
-      border-radius: 10px; padding: 20px; margin-top: 20px;
-    }
-    .faq h2 { text-align: center; color: #d4a800; margin-bottom: 15px; }
-    .faq details { margin-bottom: 10px; }
-    .faq summary {
-      cursor: pointer; font-weight: bold; color: #d4a800;
-    }
-    .faq p { margin-top: 5px; font-size: 14px; color: #555; }
-  </style>
+        .f { transform: translateZ(40px); } .ba { transform: rotateY(180deg) translateZ(40px); }
+        .r { transform: rotateY(90deg) translateZ(40px); } .l { transform: rotateY(-90deg) translateZ(40px); }
+        .t { transform: rotateX(90deg) translateZ(40px); } .bo { transform: rotateX(-90deg) translateZ(40px); }
+
+        @keyframes rotate { from { transform: rotateX(0) rotateY(0); } to { transform: rotateX(360deg) rotateY(720deg); } }
+
+        /* INTERFAZ */
+        .container {
+            background: var(--glass); border: 1px solid rgba(255,255,255,0.1);
+            padding: 40px; border-radius: 12px; width: 100%; max-width: 450px;
+            text-align: center; display: none; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        .header { border-bottom: 2px solid var(--accent); padding-bottom: 20px; margin-bottom: 30px; }
+        h1 { font-size: 18px; letter-spacing: 2px; }
+
+        input {
+            width: 100%; padding: 18px; background: #000; border: 1px solid #334155;
+            color: #fff; font-family: 'JetBrains Mono'; font-size: 18px; text-align: center;
+            border-radius: 8px; margin-bottom: 20px;
+        }
+
+        button {
+            width: 100%; padding: 18px; background: var(--accent); color: #000;
+            font-weight: 900; border: none; border-radius: 8px; cursor: pointer;
+            text-transform: uppercase; transition: 0.3s;
+        }
+
+        #res { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; font-size: 12px; }
+        .v-ok { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid #22c55e; }
+        .v-expired { background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid #fbbf24; }
+        .v-err { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid #ef4444; }
+
+        #qr { margin-top: 20px; display: flex; justify-content: center; }
+    </style>
 </head>
 <body>
 
-<div class="loader-screen" id="loader">
-  <div class="loader-circle"></div>
-  Cargando Validador de Permisos de Circulación...
-</div>
+    <div id="loader">
+        <div class="cube">
+            <div class="f">CERRO</div><div class="ba">NAVIA</div>
+            <div class="r">2026</div><div class="l">SVP</div>
+            <div class="t">OFICIAL</div><div class="bo">TRANSITO</div>
+        </div>
+        <p style="margin-top: 40px; font-size: 10px; letter-spacing: 4px; color: var(--accent);">CONECTANDO SERVIDOR...</p>
+    </div>
 
-<div class="container" id="mainContent">
-  <h1>Municipalidad de Cerro Navia</h1>
-  <p>Ingrese el código de validación:</p>
-  <input type="text" id="codeInput" placeholder="Ej: ABC123">
-  <button onclick="checkCode()">Verificar Código</button>
-  <div id="result"></div>
+    <main class="container" id="main">
+        <div class="header">
+            <i class="fas fa-shield-halved" style="font-size: 40px; margin-bottom: 15px;"></i>
+            <h1>VALIDADOR OFICIAL</h1>
+            <p style="font-size: 10px; color: var(--accent); font-weight: 700;">I. MUNICIPALIDAD DE CERRO NAVIA</p>
+        </div>
 
-  <div class="contacto">
-    <a href="mailto:cerronaviacontacto@gmail.com" class="correo">
-      <i class="fa fa-envelope"></i> Correo
-    </a>
-    <a href="https://wa.me/56944639154" class="whatsapp">
-      <i class="fa fa-whatsapp"></i> WhatsApp
-    </a>
-  </div>
-</div>
+        <input type="text" id="codeIn" placeholder="CÓDIGO DE VERIFICACIÓN">
+        <button onclick="validar()">Analizar Documento</button>
 
-<div class="faq">
-  <h2>Preguntas Frecuentes</h2>
-  <details><summary>¿Qué es el permiso de circulación?</summary><p>Es un documento obligatorio que permite circular legalmente. Sin este permiso, el vehículo no puede transitar en vías públicas.</p></details>
-  <details><summary>¿Cómo obtengo mi código de verificación?</summary><p>El código aparece impreso en el documento y también al escanear el código QR en el permiso.</p></details>
-  <details><summary>¿Cuándo debo renovar mi permiso?</summary><p>Debes renovarlo cada año antes del 31 de marzo. Vehículos de trabajo tienen fechas especiales.</p></details>
-  <details><summary>¿Qué documentos necesito para renovar?</summary><p>Debes presentar: Permiso anterior, seguro obligatorio (SOAP) vigente, revisión técnica al día y pago de multas si corresponde.</p></details>
-  <details><summary>¿Qué sucede si no pago a tiempo?</summary><p>Si no pagas antes de la fecha límite, se generan multas e intereses. Además, puedes ser multado en controles vehiculares.</p></details>
-  <details><summary>¿Qué hago si mi código es inválido?</summary><p>Revisa que el código esté correctamente digitado. Si sigue siendo inválido, contacta a la municipalidad para verificar el documento.</p></details>
-  <details><summary>¿Puedo portar el permiso en formato digital?</summary><p>Sí. Desde 2023, es válido presentarlo digitalmente en controles, siempre que sea legible.</p></details>
-</div>
+        <div id="res"></div>
+        <div id="qr"></div>
+    </main>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-      document.getElementById("loader").style.display = "none";
-      document.getElementById("mainContent").style.display = "block";
-    }, 3000);
-  });
+    <script>
+        function validar() {
+            const input = document.getElementById("codeIn").value.trim();
+            const res = document.getElementById("res");
+            const qr = document.getElementById("qr");
+            
+            if(!input) return;
+            res.style.display = "block";
+            res.className = "v-ok";
+            res.innerHTML = "PROCESANDO...";
+            qr.innerHTML = "";
 
-  const validCodes = ["01847218001", "74819719003", "74819719005", "74819719006", "74819719007", "74819719008", "74819719009", "74819719011", "74819719012", "74819719013", "74819719014", "74819719015", "74819719016", "74819719017", "74819719018", "74819719019", "74819719020", "74819719021", "74819719022", "74819719023", "74819719024", "74819719025", "74819719026", "74819719027", "74819719028", "74819719029", "74819719030", "74819719031"];
+            setTimeout(() => {
+                const expiryDate = DB_VALID_CODES[input];
 
-  function checkCode() {
-    const code = document.getElementById("codeInput").value.trim();
-    const result = document.getElementById("result");
+                if (expiryDate) {
+                    const hoy = new Date();
+                    const limite = new Date(expiryDate);
 
-    result.style.display = "block";
-    result.className = "loading";
-    result.textContent = "Verificando, espere...";
+                    if (hoy > limite) {
+                        res.className = "v-expired";
+                        res.innerHTML = `⚠️ <b>DOCUMENTO VENCIDO</b><br>Este código expiró el ${expiryDate}.`;
+                    } else {
+                        res.className = "v-ok";
+                        res.innerHTML = `✅ <b>DOCUMENTO VÁLIDO</b><br>Vigente hasta el ${expiryDate}.`;
+                        new QRCode(qr, { text: window.location.href, width: 120, height: 120, colorDark: "#38bdf8", colorLight: "transparent" });
+                    }
+                } else {
+                    res.className = "v-err";
+                    res.innerHTML = "❌ <b>ERROR DE VALIDACIÓN</b><br>Código no encontrado en el registro oficial.";
+                }
+            }, 1500);
+        }
 
-    setTimeout(() => {
-      if (code === "") {
-        result.textContent = "Ingrese un código válido.";
-        result.className = "invalid";
-      } else if (validCodes.includes(code)) {
-        result.textContent = "PERMISO VÁLIDO - Registrado en Municipalidad de Cerro Navia.";
-        result.className = "valid";
-      } else {
-        result.textContent = "Código no encontrado.";
-        result.className = "invalid";
-      }
-    }, 1500);
-  }
-</script>
-
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById("loader").style.opacity = "0";
+                setTimeout(() => {
+                    document.getElementById("loader").style.display = "none";
+                    document.getElementById("main").style.display = "block";
+                }, 800);
+            }, 3500);
+        };
+    </script>
 </body>
 </html>
