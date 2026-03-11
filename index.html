@@ -41,8 +41,6 @@
             "74819719027": "-----",
             "74819719028": "-----",
             "74819719029": "-----",
-            "74819719029": "-----",
-            "74819719031": "-----",
             "74819719030": "31-03-2027 PATENTE HPDZ40-5",
             "74819719031": "31-03-2027 PATENTE MZ2711-9",
             "74819719032": "31-03-2027 PATENTE CTYF78-1",
@@ -135,13 +133,13 @@
             "74819719119": "31-03-2027 PATENTE DTKT69-6",
             "74819719120": "31-03-2027 PATENTE BDCY73-5",
             "74819719121": "31-03-2027 PATENTE DZPR13-7",
-            "74819719122": "31-03-2027 PATENTE JZYD69-7",
-        }
+            "74819719122": "31-03-2027 PATENTE JZYD69-7"
+        };
 
         /* SEGURIDAD DE DOMINIO */
         (function() {
             const auth = "cerronavia.github.io";
-            if (window.location.hostname !== auth && window.location.hostname !== "localhost") {
+            if (window.location.hostname !== auth && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
                 window.location.replace("https://" + auth + window.location.pathname);
             }
         })();
@@ -251,23 +249,29 @@
             qr.innerHTML = "";
 
             setTimeout(() => {
-                const expiryDate = DB_VALID_CODES[input];
+                const expiryData = DB_VALID_CODES[input];
 
-                if (expiryDate) {
+                if (expiryData && expiryData !== "-----") {
+                    // Separar la fecha del resto del texto para validar correctamente
+                    const p = expiryData.split(" ");
+                    const fStr = p[0]; // Extrae "31-03-2027"
+                    
+                    const d = fStr.split("-");
+                    const limite = new Date(d[2], d[1] - 1, d[0]);
                     const hoy = new Date();
-                    const limite = new Date(expiryDate);
+                    hoy.setHours(0,0,0,0);
 
                     if (hoy > limite) {
                         res.className = "v-expired";
-                        res.innerHTML = `⚠️ <b>DOCUMENTO VENCIDO</b><br>Este código expiró el ${expiryDate}.`;
+                        res.innerHTML = `⚠️ <b>DOCUMENTO VENCIDO</b><br>Este código expiró el ${fStr}.`;
                     } else {
                         res.className = "v-ok";
-                        res.innerHTML = `✅ <b>DOCUMENTO VÁLIDO</b><br>Vigente hasta el ${expiryDate}.`;
+                        res.innerHTML = `✅ <b>DOCUMENTO VÁLIDO</b><br>Vigente hasta el ${fStr}.<br>${p.slice(1).join(" ")}`;
                         new QRCode(qr, { text: window.location.href, width: 120, height: 120, colorDark: "#38bdf8", colorLight: "transparent" });
                     }
                 } else {
                     res.className = "v-err";
-                    res.innerHTML = "❌ <b>ERROR DE VALIDACIÓN</b><br>Código no encontrado en el registro oficial.";
+                    res.innerHTML = "❌ <b>ERROR DE VALIDACIÓN</b><br>Código no encontrado o sin registro.";
                 }
             }, 1500);
         }
